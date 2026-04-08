@@ -1,6 +1,6 @@
 import SwiftUI
 
-@Observable
+@MainActor @Observable
 final class SwipeViewModel {
     var stories: [Story] = []
     var currentIndex = 0
@@ -20,7 +20,6 @@ final class SwipeViewModel {
     var remainingCount: Int { max(0, stories.count - currentIndex) }
     var progress: String { "\(currentIndex + 1) of \(stories.count)" }
 
-    @MainActor
     func loadStories(userId: UUID) async {
         isLoading = true
         do {
@@ -42,7 +41,6 @@ final class SwipeViewModel {
         isLoading = false
     }
 
-    @MainActor
     func swipe(liked: Bool, userId: UUID) {
         guard let story = currentStory else { return }
 
@@ -59,7 +57,6 @@ final class SwipeViewModel {
         }
     }
 
-    @MainActor
     func advance() {
         currentIndex += 1
         if currentIndex >= stories.count {
@@ -67,7 +64,6 @@ final class SwipeViewModel {
         }
     }
 
-    @MainActor
     func clearMatch() {
         matchedStory = nil
         advance()

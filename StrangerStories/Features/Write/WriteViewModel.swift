@@ -1,7 +1,7 @@
 import SwiftUI
 import Combine
 
-@Observable
+@MainActor @Observable
 final class WriteViewModel {
     // Session state
     var phase: WritingPhase = .loading
@@ -47,7 +47,6 @@ final class WriteViewModel {
 
     // MARK: - Achievement Tracking
 
-    @MainActor
     func snapshotAchievements() async {
         guard let userId = currentUserId else { return }
         do {
@@ -58,7 +57,6 @@ final class WriteViewModel {
         }
     }
 
-    @MainActor
     func checkForNewAchievements() async {
         guard let userId = currentUserId else { return }
         do {
@@ -71,7 +69,6 @@ final class WriteViewModel {
 
     // MARK: - Photo Loading
 
-    @MainActor
     func loadPhoto(specificPhotoId: UUID? = nil) async {
         phase = .loading
         do {
@@ -86,7 +83,6 @@ final class WriteViewModel {
         }
     }
 
-    @MainActor
     func skipPhoto() async {
         guard !hasSkipped else { return }
         hasSkipped = true
@@ -101,7 +97,6 @@ final class WriteViewModel {
 
     // MARK: - Timer
 
-    @MainActor
     func beginWriting() {
         sessionStartedAt = Date()
         timeRemaining = totalTime
@@ -127,11 +122,12 @@ final class WriteViewModel {
             }
     }
 
-    @MainActor
     private func timerTick() {
-        guard isTimerRunning else { return }
+        guard isTimerRunning, let sessionStartedAt else { return }
 
-        timeRemaining -= 1
+        // Use wall clock to handle backgrounding correctly
+        let elapsed = Date().timeIntervalSince(sessionStartedAt)
+        timeRemaining = max(0, totalTime - elapsed)
         timerProgress = timeRemaining / totalTime
 
         if timeRemaining <= 30 && Int(timeRemaining) % 10 == 0 && timeRemaining > 0 {
@@ -139,7 +135,6 @@ final class WriteViewModel {
         }
 
         if timeRemaining <= 0 {
-            timeRemaining = 0
             timerProgress = 0
             submitStory()
         }
@@ -147,20 +142,21 @@ final class WriteViewModel {
 
     // MARK: - Auto-save
 
-    @MainActor
     private func performAutoSave() async {
-        guard let photo, !storyText.isEmpty else { return }
-        // Auto-save is best-effort — don't show errors
-        // In a full implementation, we'd pass the user ID
+        guard let photo, let userId = currentUserId, !storyText.isEmpty else { return }
         isSaving = true
-        HapticManager.shared.autoSaveConfirm()
-        lastSaveTime = Date()
+        do {
+            try await storyRepo.autoSave(userId: userId, photoId: photo.id, content: storyText)
+            HapticManager.shared.autoSaveConfirm()
+            lastSaveTime = Date()
+        } catch {
+            // Auto-save is best-effort — don't interrupt writing
+        }
         isSaving = false
     }
 
     // MARK: - Submission
 
-    @MainActor
     func submitStory() {
         guard isTimerRunning else { return }
         isTimerRunning = false

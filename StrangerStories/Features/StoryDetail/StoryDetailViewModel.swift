@@ -1,6 +1,6 @@
 import SwiftUI
 
-@Observable
+@MainActor @Observable
 final class StoryDetailViewModel {
     var story: Story?
     var chapters: [Chapter] = []
@@ -22,7 +22,6 @@ final class StoryDetailViewModel {
         return story.isOpen && !hasContributed
     }
 
-    @MainActor
     func loadStory(id: UUID, currentUserId: UUID?) async {
         isLoading = true
         do {
@@ -46,7 +45,6 @@ final class StoryDetailViewModel {
         isLoading = false
     }
 
-    @MainActor
     func submitRating(_ score: Int, userId: UUID) async {
         guard let story else { return }
         do {
@@ -57,7 +55,6 @@ final class StoryDetailViewModel {
         }
     }
 
-    @MainActor
     func toggleBookmark(userId: UUID) async {
         guard let story else { return }
         do {
@@ -68,7 +65,6 @@ final class StoryDetailViewModel {
         }
     }
 
-    @MainActor
     func reportStory(reason: String, userId: UUID) async {
         guard let story else { return }
         do {

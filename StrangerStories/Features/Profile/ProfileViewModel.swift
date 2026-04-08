@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 import Supabase
 
-@Observable
+@MainActor @Observable
 final class ProfileViewModel {
     var user: AppUser?
     var stories: [Story] = []
@@ -27,7 +27,6 @@ final class ProfileViewModel {
     private let bookmarkRepo = BookmarkRepository()
     private let supabase = SupabaseClientManager.shared.client
 
-    @MainActor
     func loadProfile(userId: UUID) async {
         isLoading = true
         do {
@@ -44,7 +43,6 @@ final class ProfileViewModel {
         isLoading = false
     }
 
-    @MainActor
     func checkNameAvailability() async {
         guard editDisplayName.count >= 3 else { return }
         isCheckingName = true
@@ -60,7 +58,6 @@ final class ProfileViewModel {
         }
     }
 
-    @MainActor
     func saveProfileWithUniqueName(userId: UUID) async {
         isSaving = true
         defer { isSaving = false }
@@ -98,7 +95,6 @@ final class ProfileViewModel {
         }
     }
 
-    @MainActor
     func deleteAccount(userId: UUID, appState: AppState) async {
         HapticManager.shared.destructiveWarning()
         do {

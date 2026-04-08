@@ -17,10 +17,26 @@ interface ModerationPayload {
 
 serve(async (req) => {
   try {
+    // Verify the request has a valid service role key or valid JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const token = authHeader.replace("Bearer ", "");
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError && token !== SUPABASE_SERVICE_KEY) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const payload: ModerationPayload = await req.json();
     const { id: storyId, content, user_id: userId } = payload.record;
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
     // Check if user is shadowbanned (3+ rejected stories)
     const { count: rejectedCount } = await supabase
