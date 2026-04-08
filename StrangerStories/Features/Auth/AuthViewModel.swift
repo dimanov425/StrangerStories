@@ -2,14 +2,13 @@ import SwiftUI
 import AuthenticationServices
 import Supabase
 
-@Observable
+@MainActor @Observable
 final class AuthViewModel {
     var isLoading = false
     var errorMessage: String?
 
     private let supabase = SupabaseClientManager.shared.client
 
-    @MainActor
     func signInWithApple(credential: ASAuthorizationAppleIDCredential, appState: AppState) async {
         isLoading = true
         errorMessage = nil
@@ -52,7 +51,6 @@ final class AuthViewModel {
         isLoading = false
     }
 
-    @MainActor
     func signInWithEmail(email: String, password: String, appState: AppState) async {
         isLoading = true
         errorMessage = nil
@@ -71,7 +69,6 @@ final class AuthViewModel {
         isLoading = false
     }
 
-    @MainActor
     func signUpWithEmail(email: String, password: String, appState: AppState) async {
         isLoading = true
         errorMessage = nil
@@ -92,7 +89,6 @@ final class AuthViewModel {
         isLoading = false
     }
 
-    @MainActor
     func continueAsGuest(appState: AppState) async {
         isLoading = true
         do {
@@ -106,7 +102,6 @@ final class AuthViewModel {
     }
 
     /// Skip nickname during sign-in from profile (already has one)
-    @MainActor
     func signInFromProfile(email: String, password: String, appState: AppState) async {
         await signInWithEmail(email: email, password: password, appState: appState)
     }

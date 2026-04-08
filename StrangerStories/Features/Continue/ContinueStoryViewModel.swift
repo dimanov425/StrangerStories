@@ -1,7 +1,7 @@
 import SwiftUI
 import Combine
 
-@Observable
+@MainActor @Observable
 final class ContinueStoryViewModel {
     var story: Story?
     var chapters: [Chapter] = []
@@ -42,7 +42,6 @@ final class ContinueStoryViewModel {
         return (story.chapterCount ?? 1) >= 1
     }
 
-    @MainActor
     func loadChapters() async {
         guard let story else { return }
         do {
@@ -52,7 +51,6 @@ final class ContinueStoryViewModel {
         }
     }
 
-    @MainActor
     func beginWriting() {
         sessionStartedAt = Date()
         timeRemaining = totalTime
@@ -66,22 +64,20 @@ final class ContinueStoryViewModel {
             .sink { [weak self] _ in self?.timerTick() }
     }
 
-    @MainActor
     private func timerTick() {
-        guard isTimerRunning else { return }
-        timeRemaining -= 1
+        guard isTimerRunning, let sessionStartedAt else { return }
+        let elapsed = Date().timeIntervalSince(sessionStartedAt)
+        timeRemaining = max(0, totalTime - elapsed)
         timerProgress = timeRemaining / totalTime
         if timeRemaining <= 30 && Int(timeRemaining) % 10 == 0 && timeRemaining > 0 {
             HapticManager.shared.timerWarningPulse()
         }
         if timeRemaining <= 0 {
-            timeRemaining = 0
             timerProgress = 0
             submitChapter()
         }
     }
 
-    @MainActor
     func submitChapter() {
         guard isTimerRunning else { return }
         isTimerRunning = false

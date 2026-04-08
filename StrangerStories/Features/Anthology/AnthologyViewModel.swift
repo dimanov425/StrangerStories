@@ -1,6 +1,6 @@
 import SwiftUI
 
-@Observable
+@MainActor @Observable
 final class AnthologyViewModel {
     var chapters: [Photo] = []
     var isLoading = false
@@ -8,7 +8,6 @@ final class AnthologyViewModel {
 
     private let photoRepo = PhotoRepository()
 
-    @MainActor
     func loadChapters() async {
         isLoading = chapters.isEmpty
         do {
@@ -20,7 +19,7 @@ final class AnthologyViewModel {
     }
 }
 
-@Observable
+@MainActor @Observable
 final class AnthologyChapterViewModel {
     var photo: Photo?
     var stories: [Story] = []
@@ -29,7 +28,6 @@ final class AnthologyChapterViewModel {
     private let photoRepo = PhotoRepository()
     private let storyRepo = StoryRepository()
 
-    @MainActor
     func loadChapter(photoId: UUID) async {
         isLoading = true
         do {

@@ -1,7 +1,7 @@
 import SwiftUI
 import Supabase
 
-@Observable
+@MainActor @Observable
 final class AppState {
     var isInitialized = false
     var hasCompletedOnboarding = false
@@ -9,7 +9,7 @@ final class AppState {
     var currentUser: AppUser?
     var selectedTab: Tab = .feed
     var isAuthenticated: Bool { currentUser != nil }
-    var isGuest: Bool { currentUser == nil }
+    var isGuest: Bool { currentUser?.displayName == nil || currentUser?.email == nil }
 
     private let supabase = SupabaseClientManager.shared.client
 
@@ -17,7 +17,6 @@ final class AppState {
         Task { await initialize() }
     }
 
-    @MainActor
     func initialize() async {
         let session = try? await supabase.auth.session
         if let session {
@@ -28,7 +27,6 @@ final class AppState {
         isInitialized = true
     }
 
-    @MainActor
     func loadUser(id: UUID) async {
         do {
             let user: AppUser = try await supabase
@@ -45,7 +43,6 @@ final class AppState {
         }
     }
 
-    @MainActor
     func signOut() async {
         try? await supabase.auth.signOut()
         currentUser = nil

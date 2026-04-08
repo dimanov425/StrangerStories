@@ -1,6 +1,6 @@
 import SwiftUI
 
-@Observable
+@MainActor @Observable
 final class FeedViewModel {
     var stories: [Story] = []
     var sort: FeedSort = .recent
@@ -14,7 +14,6 @@ final class FeedViewModel {
     private let storyRepo = StoryRepository()
     private let bookmarkRepo = BookmarkRepository()
 
-    @MainActor
     func loadStories(refresh: Bool = false) async {
         if refresh { offset = 0 }
         isLoading = stories.isEmpty
@@ -32,7 +31,6 @@ final class FeedViewModel {
         isLoading = false
     }
 
-    @MainActor
     func search() async {
         guard !searchQuery.isEmpty else {
             await loadStories(refresh: true)
@@ -47,7 +45,6 @@ final class FeedViewModel {
         isLoading = false
     }
 
-    @MainActor
     func toggleBookmark(storyId: UUID, userId: UUID) async {
         do {
             let isNowBookmarked = try await bookmarkRepo.toggleBookmark(storyId: storyId, userId: userId)

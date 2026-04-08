@@ -1,6 +1,6 @@
 import SwiftUI
 
-@Observable
+@MainActor @Observable
 final class WriteTabViewModel {
     var challenge: DailyChallenge?
     var isLoading = false
@@ -18,11 +18,10 @@ final class WriteTabViewModel {
 
     var timeUntilMidnight: Date {
         let calendar = Calendar.current
-        let tomorrow = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: .now)!)
+        let tomorrow = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: .now) ?? .now)
         return tomorrow
     }
 
-    @MainActor
     func load(streakDays: Int) async {
         self.streakDays = streakDays
         isLoading = true
