@@ -65,4 +65,11 @@ actor UserRepository {
             .execute()
             .value
     }
+
+    func useStreakRecovery() async throws -> Bool {
+        try await supabase
+            .rpc("use_streak_recovery")
+            .execute()
+            .value
+    }
 }

@@ -7,6 +7,7 @@ final class AppState {
     var hasCompletedOnboarding = false
     var needsNickname = false
     var currentUser: AppUser?
+    var selectedTab: Tab = .feed
     var isAuthenticated: Bool { currentUser != nil }
     var isGuest: Bool { currentUser == nil }
 

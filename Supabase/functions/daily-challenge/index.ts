@@ -64,8 +64,18 @@ serve(async (_req) => {
     .from("daily_challenges")
     .insert({ photo_id: selected.id, date: today });
 
+  // Queue push notifications for all users with registered device tokens.
+  // In production, iterate tokens and send APNs payloads via a push provider.
+  const { count: tokenCount } = await supabase
+    .from("device_tokens")
+    .select("id", { count: "exact", head: true });
+
   return new Response(
-    JSON.stringify({ status: "created", photo_id: selected.id }),
+    JSON.stringify({
+      status: "created",
+      photo_id: selected.id,
+      push_targets: tokenCount ?? 0,
+    }),
     { headers: { "Content-Type": "application/json" } }
   );
 });

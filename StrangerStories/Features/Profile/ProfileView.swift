@@ -109,6 +109,33 @@ struct ProfileView: View {
                     .listRowBackground(Color.clear)
             }
 
+            // Streak Freeze
+            if user.streakDays > 0 {
+                Section("Streak Protection") {
+                    HStack {
+                        Image(systemName: "snowflake")
+                            .foregroundStyle(.cyan)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Streak Freeze")
+                                .font(.subheadline)
+                            Text(user.hasStreakFreeze
+                                 ? "Available — protects your streak for one missed day"
+                                 : "Used — write today to earn a new one")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        if user.hasStreakFreeze {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                        } else {
+                            Image(systemName: "xmark.circle")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+
             // My Stories
             Section("My Stories") {
                 if viewModel.stories.isEmpty {

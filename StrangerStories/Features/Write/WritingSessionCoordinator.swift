@@ -2,6 +2,8 @@ import SwiftUI
 
 /// Manages the full writing session flow: photo reveal → writing → submission
 struct WritingSessionCoordinator: View {
+    var challengePhotoId: UUID?
+
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel = WriteViewModel()
@@ -28,7 +30,11 @@ struct WritingSessionCoordinator: View {
         }
         .task {
             viewModel.currentUserId = appState.currentUser?.id
-            await viewModel.loadPhoto()
+            if let photoId = challengePhotoId {
+                await viewModel.loadPhoto(specificPhotoId: photoId)
+            } else {
+                await viewModel.loadPhoto()
+            }
         }
         .alert("Error", isPresented: .init(
             get: { viewModel.errorMessage != nil },

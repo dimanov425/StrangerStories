@@ -2,17 +2,18 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedTab: Tab = .feed
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        @Bindable var state = appState
+
+        TabView(selection: $state.selectedTab) {
             NavigationStack {
                 WriteTabView()
             }
             .tabItem {
                 Label(
                     String(localized: "Write"),
-                    systemImage: selectedTab == .write ? "pencil.line" : "pencil.line"
+                    systemImage: appState.selectedTab == .write ? "pencil.line" : "pencil.line"
                 )
             }
             .tag(Tab.write)
@@ -23,7 +24,7 @@ struct ContentView: View {
             .tabItem {
                 Label(
                     String(localized: "Feed"),
-                    systemImage: selectedTab == .feed ? "square.grid.2x2.fill" : "square.grid.2x2"
+                    systemImage: appState.selectedTab == .feed ? "square.grid.2x2.fill" : "square.grid.2x2"
                 )
             }
             .tag(Tab.feed)
@@ -34,7 +35,7 @@ struct ContentView: View {
             .tabItem {
                 Label(
                     String(localized: "Anthology"),
-                    systemImage: selectedTab == .anthology ? "book.fill" : "book"
+                    systemImage: appState.selectedTab == .anthology ? "book.fill" : "book"
                 )
             }
             .tag(Tab.anthology)
@@ -45,7 +46,7 @@ struct ContentView: View {
             .tabItem {
                 Label(
                     String(localized: "Profile"),
-                    systemImage: selectedTab == .profile ? "person.circle.fill" : "person.circle"
+                    systemImage: appState.selectedTab == .profile ? "person.circle.fill" : "person.circle"
                 )
             }
             .tag(Tab.profile)

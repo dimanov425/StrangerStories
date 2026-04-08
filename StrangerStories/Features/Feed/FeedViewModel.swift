@@ -7,10 +7,12 @@ final class FeedViewModel {
     var searchQuery = ""
     var isLoading = false
     var errorMessage: String?
+    var bookmarkedStoryIds: Set<UUID> = []
     private var offset = 0
     private let pageSize = 20
 
     private let storyRepo = StoryRepository()
+    private let bookmarkRepo = BookmarkRepository()
 
     @MainActor
     func loadStories(refresh: Bool = false) async {
@@ -43,5 +45,24 @@ final class FeedViewModel {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    @MainActor
+    func toggleBookmark(storyId: UUID, userId: UUID) async {
+        do {
+            let isNowBookmarked = try await bookmarkRepo.toggleBookmark(storyId: storyId, userId: userId)
+            if isNowBookmarked {
+                bookmarkedStoryIds.insert(storyId)
+            } else {
+                bookmarkedStoryIds.remove(storyId)
+            }
+            HapticManager.shared.bookmarkToggled()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func isBookmarked(_ storyId: UUID) -> Bool {
+        bookmarkedStoryIds.contains(storyId)
     }
 }

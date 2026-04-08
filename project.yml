@@ -28,6 +28,7 @@ targets:
     platform: iOS
     sources:
       - StrangerStories
+      - Shared
     resources:
       - StrangerStories/Resources
     settings:
@@ -56,6 +57,7 @@ targets:
     platform: iOS
     sources:
       - StrangerStoriesWidgets
+      - Shared
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.strangerstories.StrangerStories.Widgets

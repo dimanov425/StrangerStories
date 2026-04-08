@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct StoryFeedView: View {
+    @Environment(AppState.self) private var appState
     @State private var viewModel = FeedViewModel()
     @State private var showWritingSession = false
     @State private var showDiscovery = false
@@ -66,13 +67,21 @@ struct StoryFeedView: View {
                     StoryCardView(story: story)
                 }
                 .contextMenu {
-                    ShareLink(item: story.content) {
+                    ShareLink(
+                        item: "\(story.content)\n\n— \(story.author?.displayName ?? "a stranger") on Stranger Stories",
+                        subject: Text("A Stranger Story"),
+                        message: Text("strangerstories://story/\(story.id.uuidString)")
+                    ) {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }
                     Button {
-                        // bookmark toggle handled in detail view
+                        guard let userId = appState.currentUser?.id else { return }
+                        Task { await viewModel.toggleBookmark(storyId: story.id, userId: userId) }
                     } label: {
-                        Label("Bookmark", systemImage: "bookmark")
+                        Label(
+                            viewModel.isBookmarked(story.id) ? "Remove Bookmark" : "Bookmark",
+                            systemImage: viewModel.isBookmarked(story.id) ? "bookmark.fill" : "bookmark"
+                        )
                     }
                 }
             }

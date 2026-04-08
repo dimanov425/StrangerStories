@@ -14,19 +14,23 @@ struct DailyChallengeProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (DailyChallengeEntry) -> Void) {
-        completion(placeholder(in: context))
+        let entry = DailyChallengeEntry(
+            date: .now,
+            photoURL: SharedDefaults.challengePhotoURL,
+            storyCount: SharedDefaults.challengeStoryCount,
+            isPlaceholder: context.isPreview
+        )
+        completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<DailyChallengeEntry>) -> Void) {
-        // In production, fetch from shared App Group UserDefaults or Supabase
         let entry = DailyChallengeEntry(
             date: .now,
-            photoURL: nil,
-            storyCount: 0,
+            photoURL: SharedDefaults.challengePhotoURL,
+            storyCount: SharedDefaults.challengeStoryCount,
             isPlaceholder: false
         )
 
-        // Refresh at midnight and every 4 hours
         let nextUpdate = Calendar.current.date(byAdding: .hour, value: 4, to: .now)!
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
         completion(timeline)

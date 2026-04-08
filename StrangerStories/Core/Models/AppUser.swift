@@ -10,8 +10,11 @@ struct AppUser: Codable, Identifiable, Sendable {
     var storiesCount: Int
     var avgRating: Double?
     var streakDays: Int
+    var streakRecoveryUsed: Bool
     let createdAt: Date
     var updatedAt: Date
+
+    var hasStreakFreeze: Bool { !streakRecoveryUsed }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -23,6 +26,7 @@ struct AppUser: Codable, Identifiable, Sendable {
         case storiesCount = "stories_count"
         case avgRating = "avg_rating"
         case streakDays = "streak_days"
+        case streakRecoveryUsed = "streak_recovery_used"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }

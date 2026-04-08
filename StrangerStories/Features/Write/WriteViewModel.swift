@@ -9,6 +9,7 @@ final class WriteViewModel {
     var storyText = ""
     var submittedStory: Story?
     var currentUserId: UUID?
+    var newAchievements: [Achievement] = []
 
     // Timer state
     var timeRemaining: TimeInterval = 180
@@ -23,10 +24,12 @@ final class WriteViewModel {
 
     private let photoRepo = PhotoRepository()
     private let storyRepo = StoryRepository()
+    private let userRepo = UserRepository()
     private var timerCancellable: AnyCancellable?
     private var autoSaveCancellable: AnyCancellable?
     private var sessionStartedAt: Date?
     private let totalTime: TimeInterval = 180
+    private var preSubmitAchievementTypes: Set<String> = []
 
     var wordCount: Int {
         storyText.split(separator: " ").count
@@ -42,13 +45,41 @@ final class WriteViewModel {
         timeRemaining <= 30 && timeRemaining > 0
     }
 
+    // MARK: - Achievement Tracking
+
+    @MainActor
+    func snapshotAchievements() async {
+        guard let userId = currentUserId else { return }
+        do {
+            let existing = try await userRepo.fetchAchievements(userId: userId)
+            preSubmitAchievementTypes = Set(existing.map(\.type.rawValue))
+        } catch {
+            // Non-critical
+        }
+    }
+
+    @MainActor
+    func checkForNewAchievements() async {
+        guard let userId = currentUserId else { return }
+        do {
+            let all = try await userRepo.fetchAchievements(userId: userId)
+            newAchievements = all.filter { !preSubmitAchievementTypes.contains($0.type.rawValue) }
+        } catch {
+            // Non-critical
+        }
+    }
+
     // MARK: - Photo Loading
 
     @MainActor
-    func loadPhoto() async {
+    func loadPhoto(specificPhotoId: UUID? = nil) async {
         phase = .loading
         do {
-            photo = try await photoRepo.fetchRandomPhoto()
+            if let photoId = specificPhotoId {
+                photo = try await photoRepo.fetchPhoto(id: photoId)
+            } else {
+                photo = try await photoRepo.fetchRandomPhoto()
+            }
             phase = .reveal
         } catch {
             errorMessage = error.localizedDescription
@@ -77,6 +108,8 @@ final class WriteViewModel {
         timerProgress = 1.0
         phase = .writing
         isTimerRunning = true
+
+        Task { await snapshotAchievements() }
 
         HapticManager.shared.timerStart()
 
@@ -149,6 +182,7 @@ final class WriteViewModel {
                     submittedAt: Date()
                 )
                 submittedStory = story
+                await checkForNewAchievements()
                 phase = .submitted
             } catch {
                 // Even on error, show confirmation with local data

@@ -24,11 +24,9 @@ struct StoryDetailView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 if let story = viewModel.story {
-                    ShareLink(
-                        item: story.content,
-                        subject: Text("A Stranger Story"),
-                        message: Text("Read this story on Stranger Stories")
-                    ) {
+                    Button {
+                        shareStory(story)
+                    } label: {
                         Image(systemName: "square.and.arrow.up")
                     }
                 }
@@ -253,5 +251,28 @@ struct StoryDetailView: View {
         .padding(12)
         .background(Color.backgroundSecondary)
         .cardShape()
+    }
+
+    @MainActor
+    private func shareStory(_ story: Story) {
+        var items: [Any] = []
+
+        if let image = StoryShareCard.renderImage(for: story) {
+            items.append(image)
+        }
+
+        let authorName = story.author?.displayName ?? "a stranger"
+        let text = "A story by \(authorName) on Stranger Stories\n\nstrangerstories://story/\(story.id.uuidString)"
+        items.append(text)
+
+        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let root = windowScene.keyWindow?.rootViewController else { return }
+
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = root.view
+            popover.sourceRect = CGRect(x: root.view.bounds.midX, y: 0, width: 0, height: 0)
+        }
+        root.present(activityVC, animated: true)
     }
 }
